@@ -1,6 +1,7 @@
 # appd_agents_inventory
 python script to create analytics dashbaord as well as a csv report for all machine and app agents
 
+![Import Dashboards](agents_inventory_dashbaord.png)
 #Step 1
 update autConfig.json with your controller access info 
 
@@ -23,3 +24,10 @@ curl --location --request POST 'https://analytics.api.appdynamics.com/events/sch
 
 ```
 
+#Step 3: Run the script or schedule it as a cron job
+```
+python async_Agents_Version.py 
+```
+
+#Step 4: Import the custom dashboard saved in this directory into your controller
+CustomDashboard_Agents+Inventory_.json
