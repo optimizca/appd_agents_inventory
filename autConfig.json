@@ -1,0 +1,15 @@
+{
+    "config":
+        {
+            "host": ".saas.appdynamics.com",
+            "port": 443,
+            "ssl" : true,
+            "account": "",
+            "user": "",
+            "password": "",
+            "applications": ".*",
+            "global_account_name": "",
+            "analytics_api_key":"",
+            "event_service_url":"https://analytics.api.appdynamics.com"
+        }
+}
