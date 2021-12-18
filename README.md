@@ -4,7 +4,24 @@ python script to create analytics dashbaord as well as a csv report for all mach
 ![Import Dashboards](agents_inventory_dashbaord.png)
 #Step 1
 update autConfig.json with your controller access info 
+```
+{
+    "config":
+        {
+            "host": ".saas.appdynamics.com",
+            "port": 443,
+            "ssl" : true,
+            "account": "",
+            "user": "",
+            "password": "",
+            "applications": ".*",
+            "global_account_name": "",
+            "analytics_api_key":"",
+            "event_service_url":"https://analytics.api.appdynamics.com"
+        }
+}
 
+```
 #Step 2: Create Analytics Custom Schema 
 ```
 curl --location --request POST 'https://analytics.api.appdynamics.com/events/schema/agents_inventory' \
