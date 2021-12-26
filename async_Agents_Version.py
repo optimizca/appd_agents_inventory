@@ -284,6 +284,18 @@ class AppDController:
             return "machine_agent"
         else:
             return "dotnet_machine_agent"
+    def convertAgentVersionToNumber(self,agent_version):
+        agent_version_extract=agent_version.split("compatible")[0]
+        pattern = r'(\d{1,2}\.\d{1,2}\.\d{1,2})'
+        version=re.findall(pattern,agent_version_extract)
+        if(len(version)>0):
+            l = [int(x, 10) for x in version[0].split('.')]
+            l.reverse()
+            versionNumber = sum(x * (100 ** i) for i, x in enumerate(l))
+            return versionNumber
+        return -1
+
+
 
     def write_excel(self,filename, sheetname, dataframe):
         with pd.ExcelWriter(filename, engine='openpyxl', mode='a') as writer:
@@ -298,7 +310,7 @@ class AppDController:
                 writer.save()
 
     async def exportAgentsInventory (self):
-        fieldnames = ['controller_name','application_name', 'node_name', 'machine_name', 'agent_type', 'agent_version','machine_agent_version']
+        fieldnames = ['controller_name','application_name', 'node_name', 'machine_name', 'agent_type', 'agent_version','agent_version_number']
         machineAgents= await controller.getMachineAgents()
         appAgents = await controller.getAppAgents()
         allAgents=[*machineAgents,*appAgents]
@@ -307,13 +319,12 @@ class AppDController:
             csv_output_writer = csv.writer(csv_output, delimiter=',')
             csv_output_writer.writerow(fieldnames)
             for agent in allAgents:
-                #appAgentVersion=node['appAgentVersion'].split('compatible')[0].strip()
-                #machineAgentVersion=node['machineAgentVersion'].split('compatible')[0].strip()
+                agent_version_number=controller.convertAgentVersionToNumber(agent["agent_version"])
                 row = [[agent["controller_name"],agent["application_name"],agent["node_name"],
-                        agent["machine_name"],agent["agent_type"],agent["agent_version"]]]
+                        agent["machine_name"],agent["agent_type"],agent["agent_version"],agent_version_number]]
                 csv_output_writer.writerows(row)
                 outputObj = {"controller_name":agent["controller_name"],"application_name": agent["application_name"], "node_name": agent["node_name"],
-                             "machine_name": agent["machine_name"],"agent_type": agent["agent_type"],"agent_version": agent["agent_version"]}
+                             "machine_name": agent["machine_name"],"agent_type": agent["agent_type"],"agent_version": agent["agent_version"],"agent_version_number": agent_version_number}
                 OutputJsonList.append(outputObj);
                 logging.debug(row)
 

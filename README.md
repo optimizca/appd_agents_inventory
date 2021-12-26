@@ -35,7 +35,8 @@ curl --location --request POST 'https://analytics.api.appdynamics.com/events/sch
         "node_name": "string",
         "machine_name": "string",
         "agent_type": "string",
-        "agent_version": "string"
+        "agent_version": "string",
+        "agent_version_number": "integer"
     }
 }'
 
