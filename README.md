@@ -46,6 +46,8 @@ curl --location --request POST 'https://analytics.api.appdynamics.com/events/sch
 ```
 python async_Agents_Version.py 
 ```
+Here is an example on how to schedule the script using windows scheduler
 
+![Windows Task Scheduler Instructions](Windows Task Scheduler.docx)
 #Step 4: Import the custom dashboard saved in this directory into your controller
 CustomDashboard_Agents+Inventory_.json
