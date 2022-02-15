@@ -51,3 +51,8 @@ Here is an example on how to schedule the script using windows scheduler:
 
 #Step 4: Import the custom dashboard saved in this directory into your controller
 CustomDashboard_Agents+Inventory_.json
+
+#Query Using Analytics
+You can query the data in analytics. For example, you can get the DB agents using this query
+```
+SELECT distinct (machine_name), agent_version FROM agents_inventory WHERE agent_type like "Database::*"```

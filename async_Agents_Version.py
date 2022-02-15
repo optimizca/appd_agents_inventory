@@ -265,7 +265,39 @@ class AppDController:
         #print(allAgents)
         return allAgents
 
+    async def getDBCollectors(self) :
+        debugString = f"Gathering Machine Agents"
+        logging.debug(f"{self.url} - {debugString}")
+        # get current timestamp in milliseconds
+        dbCollectors = []
+        gatherFutures = []
 
+        requestUrl = f'{self.url}/controller/restui/agent/setting/getDBAgents'
+        gatherFutures.append(controller.getRequest(requestUrl))
+
+        dbAgents = await gatherWithConcurrency(*gatherFutures)
+        gatherFutures = []
+        requestUrl = f'{self.url}/controller/rest/databases/collectors'
+        gatherFutures.append(controller.getRequest(requestUrl))
+        collectors=await gatherWithConcurrency(*gatherFutures)
+        if isinstance(collectors, list):
+            for collector in collectors[0]:
+                [dbAgentHostName,dbAgentVersion]=controller.getDBAgentInfo(dbAgents,collector["config"]["agentName"])
+                node_name=collector["config"]["name"]+"::"+collector["config"]["agentName"]
+                outputObj = {"controller_name": controller.url, "application_name": "Database",
+                             "node_name": node_name,
+                             "machine_name": dbAgentHostName, "agent_type": "Database::"+collector["config"]["type"],
+                             "agent_version": dbAgentVersion}
+                dbCollectors.append(outputObj)
+
+
+        return dbCollectors
+    def getDBAgentInfo(self,dbAgents,agentName):
+        if isinstance(dbAgents, list):
+            for dbAgent in dbAgents[0]:
+                if dbAgent["agentName"] == agentName:
+                    return [dbAgent["hostName"],dbAgent["version"]]
+        return ["",""]
     def getMachineAgentAppName(self,mahineAgentsResult,machineName, currentAppName):
         #enrich java machine agent for .NEt with AppName if not associated with an app
         if("-java-MA" in machineName):
@@ -313,7 +345,9 @@ class AppDController:
         fieldnames = ['controller_name','application_name', 'node_name', 'machine_name', 'agent_type', 'agent_version','agent_version_number']
         machineAgents= await controller.getMachineAgents()
         appAgents = await controller.getAppAgents()
-        allAgents=[*machineAgents,*appAgents]
+        dbCollectors = await controller.getDBCollectors()
+
+        allAgents=[*machineAgents,*appAgents,*dbCollectors]
 
         with open("agents_inventory.csv", mode='w') as csv_output:
             csv_output_writer = csv.writer(csv_output, delimiter=',')
