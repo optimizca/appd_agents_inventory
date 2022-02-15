@@ -327,7 +327,27 @@ class AppDController:
             return versionNumber
         return -1
 
+    async def getEUMAppsCount(self) :
+        debugString = f"Gathering Machine Agents"
+        logging.debug(f"{self.url} - {debugString}")
+        # get current timestamp in milliseconds
+        dbCollectors = []
+        gatherFutures = []
 
+        requestUrl = f'{self.url}/controller/restui/eumApplications/getAllEumApplicationsData?time-range=last_5_minutes.BEFORE_NOW.-1.-1.5'
+        gatherFutures.append(controller.getRequest(requestUrl))
+
+        eumApps = await gatherWithConcurrency(*gatherFutures)
+        gatherFutures = []
+        requestUrl = f'{self.url}/controller/restui/eumApplications/getAllMobileApplicationsData?time-range=last_5_minutes.BEFORE_NOW.-1.-1.5'
+        gatherFutures.append(controller.getRequest(requestUrl))
+        mobileApps=await gatherWithConcurrency(*gatherFutures)
+
+        df = pd.DataFrame(eumApps[0])
+        df.to_csv("eum_apps.csv", index=False, encoding="utf-8")
+
+        df = pd.DataFrame(mobileApps[0])
+        df.to_csv("mobile_apps.csv", index=False, encoding="utf-8")
 
     def write_excel(self,filename, sheetname, dataframe):
         with pd.ExcelWriter(filename, engine='openpyxl', mode='a') as writer:
@@ -413,6 +433,7 @@ OutputJsonList= []
 
 async def main():
     await controller.exportAgentsInventory()
+    await controller.getEUMAppsCount()
 
 
 if sys.platform == "win32":
