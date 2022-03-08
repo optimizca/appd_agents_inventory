@@ -280,15 +280,16 @@ class AppDController:
         requestUrl = f'{self.url}/controller/rest/databases/collectors'
         gatherFutures.append(controller.getRequest(requestUrl))
         collectors=await gatherWithConcurrency(*gatherFutures)
-        if isinstance(collectors, list):
-            for collector in collectors[0]:
-                [dbAgentHostName,dbAgentVersion]=controller.getDBAgentInfo(dbAgents,collector["config"]["agentName"])
-                node_name=collector["config"]["name"]+"::"+collector["config"]["agentName"]
-                outputObj = {"controller_name": controller.url, "application_name": "Database",
-                             "node_name": node_name,
-                             "machine_name": dbAgentHostName, "agent_type": "Database::"+collector["config"]["type"],
-                             "agent_version": dbAgentVersion}
-                dbCollectors.append(outputObj)
+        if isinstance(collectors, list) :
+            if collectors[0] is not None:
+                for collector in collectors[0]:
+                    [dbAgentHostName,dbAgentVersion]=controller.getDBAgentInfo(dbAgents,collector["config"]["agentName"])
+                    node_name=collector["config"]["name"]+"::"+collector["config"]["agentName"]
+                    outputObj = {"controller_name": controller.url, "application_name": "Database",
+                                 "node_name": node_name,
+                                 "machine_name": dbAgentHostName, "agent_type": "Database::"+collector["config"]["type"],
+                                 "agent_version": dbAgentVersion}
+                    dbCollectors.append(outputObj)
 
 
         return dbCollectors
