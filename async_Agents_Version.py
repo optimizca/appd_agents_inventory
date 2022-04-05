@@ -3,6 +3,7 @@ import re
 import sys
 import csv
 from dataclasses import dataclass
+from cryptography.fernet import Fernet
 import logging
 
 import numpy as np
@@ -21,11 +22,17 @@ import asyncio
 
 from datetime import datetime
 import time
+import sys
 
 #inputPwd = getpass.getpass("Enter your password")
 #controllerPassword = inputPwd
 logging.basicConfig(filename='appd_violations_report.log',filemode='w',format='%(asctime)s - %(message)s', level=logging.DEBUG)
-CONFIG_FILE = "autConfig.json"
+CONFIG_FILE = "controller_config.json"
+if(sys.argv[1:]):
+    CONFIG_FILE = sys.argv[1]
+print(CONFIG_FILE)
+
+
 try:
     with open(CONFIG_FILE) as json_file:
         json_file = json.load(json_file)
@@ -40,7 +47,8 @@ try:
         eventServiceURL = data['event_service_url']
         inputApplications = data['applications']
         controllerPassword= data['password']
-
+        encryption=data["encryption"]
+        encryption_key = data["encryption_key"]
 
 
 
@@ -96,6 +104,7 @@ class AppDController:
             'Content-Type': 'application/json;charset=UTF-8'
         }
         return headers
+
     async def getRequest(self, endpoint) :
         debugString = f"Getting request:{endpoint}"
         logging.debug(f"{debugString}")
@@ -328,6 +337,24 @@ class AppDController:
             return versionNumber
         return -1
 
+    def calcAgentAge(self,agent_version):
+        age =999999;
+        # Used to determine agent age from semantic versioning of agents
+        currYearAndMonth = [int(x) for x in time.strftime("%Y,%m").split(",")]
+        currYear = int(str(currYearAndMonth[0])[-2:])
+        currMonth = currYearAndMonth[1]
+
+        calendarVersionRegex = re.compile("[0-9]+\\.[0-9]+\\.")
+        version = calendarVersionRegex.search(agent_version)[0].split(".")  # e.g. 'Server Agent v21.6.1.2 GA ...'
+        majorVersion = int(version[0])
+        minorVersion = int(version[1])
+        if majorVersion != 4:
+            years = currYear - majorVersion
+            months= currMonth- minorVersion
+            age=years*12+months
+
+        return age
+
     async def getEUMAppsCount(self) :
         debugString = f"Gathering Machine Agents"
         logging.debug(f"{self.url} - {debugString}")
@@ -363,7 +390,7 @@ class AppDController:
                 writer.save()
 
     async def exportAgentsInventory (self):
-        fieldnames = ['controller_name','application_name', 'node_name', 'machine_name', 'agent_type', 'agent_version','agent_version_number']
+        fieldnames = ['controller_name','application_name', 'node_name', 'machine_name', 'agent_type', 'agent_version','agent_version_number','agent_age_months']
         machineAgents= await controller.getMachineAgents()
         appAgents = await controller.getAppAgents()
         dbCollectors = await controller.getDBCollectors()
@@ -375,11 +402,12 @@ class AppDController:
             csv_output_writer.writerow(fieldnames)
             for agent in allAgents:
                 agent_version_number=controller.convertAgentVersionToNumber(agent["agent_version"])
+                agent_age_months=controller.calcAgentAge(agent["agent_version"])
                 row = [[agent["controller_name"],agent["application_name"],agent["node_name"],
-                        agent["machine_name"],agent["agent_type"],agent["agent_version"],agent_version_number]]
+                        agent["machine_name"],agent["agent_type"],agent["agent_version"],agent_version_number,agent_age_months]]
                 csv_output_writer.writerows(row)
                 outputObj = {"controller_name":agent["controller_name"],"application_name": agent["application_name"], "node_name": agent["node_name"],
-                             "machine_name": agent["machine_name"],"agent_type": agent["agent_type"],"agent_version": agent["agent_version"],"agent_version_number": agent_version_number}
+                             "machine_name": agent["machine_name"],"agent_type": agent["agent_type"],"agent_version": agent["agent_version"],"agent_version_number": agent_version_number,"agent_age_months":agent_age_months}
                 OutputJsonList.append(outputObj);
                 logging.debug(row)
 
@@ -416,8 +444,17 @@ async def gatherWithConcurrency(*tasks, size: int = 50):
             return await task
     return await asyncio.gather(*[semTask(task) for task in tasks])
 
+def decrypt(key, encString):
+    enc_key=bytes(key, 'utf-8')
+    fernet = Fernet(enc_key)
+    decString = fernet.decrypt(bytes(encString, 'utf-8')).decode()
+    return decString
+
 logging.info("START")
 start = time.time()
+if encryption:
+    controllerPassword=decrypt(encryption_key, controllerPassword)
+
 controller = AppDController(
     host=controllerHost,
     port=controllerPort,
@@ -430,6 +467,7 @@ controller = AppDController(
     event_service_url=eventServiceURL
 )
 OutputJsonList= []
+
 
 
 async def main():

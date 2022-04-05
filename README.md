@@ -2,8 +2,7 @@
 python script to create analytics dashbaord as well as a csv report for all machine and app agents
 
 ![Import Dashboards](agents_inventory_dashbaord.png)
-#Step 1
-update autConfig.json with your controller access info 
+#Step 1: update controller_config.json with your controller access info 
 ```
 {
     "config":
@@ -14,6 +13,8 @@ update autConfig.json with your controller access info
             "account": "",
             "user": "",
             "password": "",
+            "encryption": false,
+            "encryption_key":"",
             "applications": ".*",
             "global_account_name": "",
             "analytics_api_key":"",
@@ -36,7 +37,8 @@ curl --location --request POST 'https://analytics.api.appdynamics.com/events/sch
         "machine_name": "string",
         "agent_type": "string",
         "agent_version": "string",
-        "agent_version_number": "integer"
+        "agent_version_number": "integer",
+        "agent_age_months": "integer"
     }
 }'
 
@@ -52,7 +54,26 @@ Here is an example on how to schedule the script using windows scheduler:
 #Step 4: Import the custom dashboard saved in this directory into your controller
 CustomDashboard_Agents+Inventory_.json
 
+
 #Query Using Analytics
 You can query the data in analytics. For example, you can get the DB agents using this query
 ```
 SELECT distinct (machine_name), agent_version FROM agents_inventory WHERE agent_type like "Database::*"```
+```
+
+#Controller Password Encryption
+To configure the controller with encrypted password
+1.  encrypt the password using the following command. Below command will generate a key and an encrypted password
+```
+python3 encrpyt_string.py 
+```
+Output Example:
+```
+Enter your password
+key:  DpTMIppRWJzW9wXKqMwOCVOSh7rBJUJ5qGupRXMICjQ=
+encrypted string:  gAAAAABiSwEX3LDwHcszEZxM0cvwZCiBYEZwqbm7wJ7xajNfRBVptOi4PpUZuFXAyvgIN2qVCvEGAjZ8WU6s2v7vBenAFORwIQ==
+```
+
+2. copy they key and encrypted password to your controll_config.json
+![Import Dashboards](controller_config.png)
+
