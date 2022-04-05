@@ -2,7 +2,8 @@
 python script to create analytics dashbaord as well as a csv report for all machine and app agents
 
 ![Import Dashboards](agents_inventory_dashbaord.png)
-![Import Dashboards](Enterprise Inventory Report.png)
+
+![Enterprise Agents Inventory Report](Enterprise_Agents_Inventory_Report.png)
 #Step 1: update controller_config.json with your controller access info 
 ```
 {
