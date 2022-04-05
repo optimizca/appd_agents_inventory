@@ -2,6 +2,7 @@
 python script to create analytics dashbaord as well as a csv report for all machine and app agents
 
 ![Import Dashboards](agents_inventory_dashbaord.png)
+![Import Dashboards](Enterprise Inventory Report.png)
 #Step 1: update controller_config.json with your controller access info 
 ```
 {
@@ -51,9 +52,9 @@ python async_Agents_Version.py
 Here is an example on how to schedule the script using windows scheduler:
 [Windows Task Scheduler Instructions](Windows%20Task%20Scheduler.docx)
 
-#Step 4: Import the custom dashboard saved in this directory into your controller
-CustomDashboard_Agents+Inventory_.json
-
+#Step 4: Import the custom dashboards saved in this directory into your controller
+1. CustomDashboard_Agents+Inventory+v2_1.json
+2. CustomDashboard_Enterprise+Agents+Inventory.json
 
 #Query Using Analytics
 You can query the data in analytics. For example, you can get the DB agents using this query
